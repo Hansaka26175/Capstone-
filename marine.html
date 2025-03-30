@@ -1,0 +1,85 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Game Constants
+WIDTH, HEIGHT = 800, 600
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+PLAYER_COLOR = (0, 128, 255)
+OBSTACLE_COLOR = (255, 0, 0)
+GRAVITY = 0.5
+JUMP_STRENGTH = -10
+
+# Screen Setup
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Platformer Game")
+clock = pygame.time.Clock()
+
+# Player Class
+class Player:
+    def __init__(self):
+        self.rect = pygame.Rect(100, HEIGHT - 60, 40, 40)
+        self.vel_y = 0
+        self.on_ground = False
+    
+    def update(self):
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+        
+        if self.rect.bottom >= HEIGHT - 20:
+            self.rect.bottom = HEIGHT - 20
+            self.vel_y = 0
+            self.on_ground = True
+        else:
+            self.on_ground = False
+    
+    def jump(self):
+        if self.on_ground:
+            self.vel_y = JUMP_STRENGTH
+    
+    def draw(self):
+        pygame.draw.rect(screen, PLAYER_COLOR, self.rect)
+
+# Obstacle Class
+class Obstacle:
+    def __init__(self, x, width, speed):
+        self.rect = pygame.Rect(x, HEIGHT - 40, width, 20)
+        self.speed = speed
+    
+    def update(self):
+        self.rect.x -= self.speed
+    
+    def draw(self):
+        pygame.draw.rect(screen, OBSTACLE_COLOR, self.rect)
+
+# Game Loop
+player = Player()
+obstacles = [Obstacle(WIDTH + i * 300, 40, 5) for i in range(3)]
+
+running = True
+while running:
+    screen.fill(WHITE)
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.jump()
+    
+    player.update()
+    player.draw()
+    
+    for obstacle in obstacles:
+        obstacle.update()
+        obstacle.draw()
+        if obstacle.rect.right < 0:
+            obstacle.rect.x = WIDTH + random.randint(100, 300)
+    
+    pygame.display.flip()
+    clock.tick(30)
+
+pygame.quit()
